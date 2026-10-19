@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我的小小寵物 🐱</title>
+<style>
+:root {
+  --pink: #f5b8ca;
+  --deep: #865b70;
+  --cream: #fff8f0;
+  --purple: #d9c5f5;
+  --green: #b9dfc3;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  background: linear-gradient(135deg,#fff0f4,#fff8e9,#f5efff);
+  color: var(--deep);
+}
+button, input { font: inherit; }
+button { cursor: pointer; transition: transform .15s, filter .15s; }
+button:hover { filter: brightness(.97); transform: translateY(-2px); }
+button:active { transform: scale(.97); }
+.app { width: min(920px,94%); margin: auto; padding: 28px 0 40px; }
+header { text-align: center; margin-bottom: 22px; }
+header h1 { margin: 0 0 8px; font-size: clamp(27px,5vw,40px); }
+header p { margin: 0; color: #a48798; }
+.panel {
+  background: rgba(255,255,255,.88);
+  border: 2px solid white;
+  border-radius: 26px;
+  padding: 24px;
+  box-shadow: 0 10px 35px #cda9bb22;
+  margin-bottom: 18px;
+}
+.pet-stage {
+  background: linear-gradient(160deg,#ffe6ed,#fff2dc);
+  border-radius: 23px;
+  text-align: center;
+  padding: 22px 15px;
+  position: relative;
+  overflow: hidden;
+}
+.pet-stage::before,.pet-stage::after {
+  content: "✦";
+  position: absolute;
+  color: #e9b4c8;
+  font-size: 27px;
+}
+.pet-stage::before { top: 22px; left: 12%; }
+.pet-stage::after { top: 48px; right: 12%; }
+.pet {
+  font-size: clamp(90px,18vw,140px);
+  line-height: 1.4;
+  display: inline-block;
+  filter: drop-shadow(0 8px 5px #c49ca744);
+  animation: float 2.5s ease-in-out infinite;
+  user-select: none;
+}
+@keyframes float {
+  0%,100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-8px) rotate(2deg); }
+}
+.pet.playing { animation: bounce .4s ease-in-out 3; }
+@keyframes bounce {
+  50% { transform: translateY(-20px) rotate(10deg) scale(1.08); }
+}
+.pet-name { font-size: 26px; font-weight: 800; margin: 0 0 8px; }
+.speech {
+  display: inline-block;
+  background: white;
+  border-radius: 18px;
+  padding: 12px 18px;
+  max-width: 100%;
+  line-height: 1.7;
+}
+.level {
+  display: inline-block;
+  background: #fff;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  margin-top: 12px;
+}
+h2 { font-size: 19px; margin: 0 0 17px; }
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 14px;
+}
+.status-card {
+  background: var(--cream);
+  border-radius: 17px;
+  padding: 15px;
+}
+.status-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 5px;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+.track { height: 10px; background: #eee5e8; border-radius: 20px; overflow: hidden; }
+.fill { height: 100%; width: 50%; border-radius: 20px; transition: width .35s; }
+#hungerBar { background: #f2a0b8; }
+#happyBar { background: #c6a4ef; }
+#energyBar { background: #edc66c; }
+.actions {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 12px;
+}
+.action {
+  border: 0;
+  border-radius: 18px;
+  padding: 18px 8px;
+  color: var(--deep);
+  font-weight: 700;
+  background: #fff0f4;
+}
+.action:nth-child(2) { background: #f3eaff; }
+.action:nth-child(3) { background: #fff3d9; }
+.action .emoji { display: block; font-size: 30px; margin-bottom: 8px; }
+.action small { display: block; font-weight: 400; margin-top: 5px; color: #a48798; }
+.action:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+.name-form { display: flex; gap: 9px; margin-top: 15px; }
+input {
+  width: 100%; min-width: 0;
+  border: 1px solid #ead9e1;
+  border-radius: 12px;
+  padding: 11px 13px;
+  outline-color: var(--pink);
+  background: white;
+  color: var(--deep);
+}
+.primary {
+  border: 0; border-radius: 12px; padding: 11px 17px;
+  background: var(--pink); color: white; font-weight: 700;
+  white-space: nowrap;
+}
+.diary { list-style: none; margin: 0; padding: 0; }
+.diary li {
+  padding: 11px 0;
+  border-bottom: 1px solid #f3e9ee;
+  display: flex; justify-content: space-between; gap: 10px;
+  font-size: 14px;
+}
+.diary li:last-child { border-bottom: 0; }
+.muted { color: #b19aa7; font-size: 12px; }
+.bottom-row {
+  display: flex; justify-content: space-between;
+  align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.secondary {
+  border: 1px solid #ead9e1; border-radius: 12px;
+  background: white; color: var(--deep); padding: 10px 14px;
+}
+footer { text-align: center; font-size: 12px; color: #ae91a0; padding: 10px; }
+.toast { min-height: 22px; color: #a46b86; font-size: 13px; margin-top: 12px; }
+@media(max-width:580px) {
+  .app { padding-top: 20px; }
+  .panel { padding: 17px; border-radius: 21px; }
+  .status-grid { grid-template-columns: 1fr; gap: 9px; }
+  .status-card { padding: 12px; }
+  .status-top { margin-bottom: 7px; }
+  .actions { gap: 7px; }
+  .action { padding: 15px 4px; font-size: 14px; }
+  .action .emoji { font-size: 27px; }
+}
+.pet img {
+  width: clamp(120px, 35vw, 200px);
+  height: clamp(120px, 35vw, 200px);
+  object-fit: contain;
+  filter: drop-shadow(0 8px 8px #c49ca744);
+  animation: float 2.5s ease-in-out infinite;
+}
+</style>
+</head>
+<body>
+<main class="app">
+  <header>
+    <h1>🐾 我的寵物</h1>
+    <p>每天一點點陪伴，就是滿滿的幸福 ♡</p>
+  </header>
+
+  <section class="panel">
+    <div class="pet-stage">
+      <div class="pet" id="pet" role="img" aria-label="可愛的小貓">
+        <img src="images/cat.png" alt="可愛的卡通小貓">
+      </div>
+      <div class="pet-name" id="petName">麻糬</div>
+      <div class="speech" id="speech" aria-live="polite">
+        喵～今天也要一起玩喔！
+      </div><br>
+      <span class="level" id="level">💗 親密等級 Lv. 1</span>
+    </div>
+    <form class="name-form" id="nameForm">
+      <input id="nameInput" maxlength="12" placeholder="替小貓取一個可愛的名字" aria-label="寵物名字">
+      <button class="primary" type="submit">更改名字</button>
+    </form>
+    <div class="toast" id="toast" aria-live="polite"></div>
+  </section>
+
+  <section class="panel">
+    <h2>🌷 寵物的狀態</h2>
+    <div class="status-grid">
+      <div class="status-card">
+        <div class="status-top"><span>🍓 飽食度</span><strong id="hungerText">72/100</strong></div>
+        <div class="track"><div class="fill" id="hungerBar"></div></div>
+      </div>
+      <div class="status-card">
+        <div class="status-top"><span>💗 開心度</span><strong id="happyText">75/100</strong></div>
+        <div class="track"><div class="fill" id="happyBar"></div></div>
+      </div>
+      <div class="status-card">
+        <div class="status-top"><span>⚡ 活力值</span><strong id="energyText">80/100</strong></div>
+        <div class="track"><div class="fill" id="energyBar"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>🎀 今天想和牠做什麼？</h2>
+    <div class="actions">
+      <button class="action" id="feedBtn">
+        <span class="emoji">🍼</span>餵食
+        <small>恢復飽食度</small>
+      </button>
+      <button class="action" id="petBtn">
+        <span class="emoji">🥰</span>摸摸頭
+        <small>提升親密度</small>
+      </button>
+      <button class="action" id="playBtn">
+        <span class="emoji">🧶</span>玩遊戲
+        <small>開心但消耗活力</small>
+      </button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="bottom-row">
+      <h2 style="margin:0">📔 我們的相處日記</h2>
+      <span class="muted" id="interactionCount">互動 0 次</span>
+    </div>
+    <ul class="diary" id="diary" style="margin-top:12px">
+      <li><span>🌸 和麻糬相遇了！</span><span class="muted">剛剛</span></li>
+    </ul>
+  </section>
+
+  <section class="panel">
+    <h2>🌈 寵物管理</h2>
+    <div class="bottom-row">
+      <div>
+        <strong>重新開始</strong>
+        <div class="muted" style="margin-top:5px">讓小貓回到初次見面時的狀態</div>
+      </div>
+      <button class="secondary" id="resetBtn">重新開始 ↻</button>
+    </div>
+  </section>
+  <footer>Made with ♡ · 我的療癒小天地</footer>
+</main>
+
+<script>
+(() => {
+  const KEY = "littlePetSaveV1";
+  const initial = {
+    name: "麻糬",
+    hunger: 72,
+    happy: 75,
+    energy: 80,
+    bond: 0,
+    count: 0,
+    diary: ["🌸 和麻糬相遇了！"],
+    speech: "喵～今天也要一起玩喔！",
+    mood: "🐱"
+  };
+
+  let state;
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEY));
+    state = saved && typeof saved === "object"
+      ? { ...initial, ...saved }
+      : { ...initial };
+  } catch {
+    state = { ...initial };
+  }
+
+  // 將儲存的資料限制在合理範圍。
+  function clamp(value) {
+    const n = Number(value);
+    return Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : 0;
+  }
+
+  function normalize() {
+    state.hunger = clamp(state.hunger);
+    state.happy = clamp(state.happy);
+    state.energy = clamp(state.energy);
+    state.bond = Math.max(0, Math.floor(Number(state.bond) || 0));
+    state.count = Math.max(0, Math.floor(Number(state.count) || 0));
+    state.name = String(state.name || "麻糬").slice(0, 12);
+    state.diary = Array.isArray(state.diary)
+      ? state.diary.filter(x => typeof x === "string").slice(0, 8)
+      : [];
+    state.speech = String(state.speech || initial.speech);
+    state.mood = ["🐱","😺","😸","😋","🥰","😻","🥱","😿","😽"].includes(state.mood)
+      ? state.mood : "🐱";
+  }
+
+  normalize();
+
+  const $ = id => document.getElementById(id);
+  let toastTimer;
+
+  function save() {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(state));
+      $("toast").textContent = "";
+    } catch {
+      $("toast").textContent = "目前無法保存進度，但仍可繼續遊玩。";
+    }
+  }
+
+  function render() {
+    $("petName").textContent = state.name;
+    $("pet").setAttribute("aria-label", state.name);
+    $("speech").textContent = state.speech;
+    $("level").textContent = `💗 親密等級 Lv. ${Math.floor(state.bond / 5) + 1}`;
+    $("interactionCount").textContent = `互動 ${state.count} 次`;
+
+    [
+      ["hunger", state.hunger],
+      ["happy", state.happy],
+      ["energy", state.energy]
+    ].forEach(([key, value]) => {
+      $(key + "Text").textContent = `${value}/100`;
+      $(key + "Bar").style.width = `${value}%`;
+    });
+
+    $("playBtn").disabled = state.energy < 15;
+    $("diary").replaceChildren();
+
+    if (!state.diary.length) {
+      const li = document.createElement("li");
+      li.textContent = "還沒有日記，快來和小貓互動吧！";
+      $("diary").appendChild(li);
+    } else {
+      state.diary.forEach((entry, index) => {
+        const li = document.createElement("li");
+        const text = document.createElement("span");
+        const time = document.createElement("span");
+        text.textContent = entry;
+        time.className = "muted";
+        time.textContent = index === 0 ? "剛剛" : `${index + 1} 次前`;
+        li.append(text, time);
+        $("diary").appendChild(li);
+      });
+    }
+  }
+
+  function notify(text) {
+    $("toast").textContent = text;
+    clearTimeout(toastTimer);
+    // 不依賴計時器維持任何遊戲資料。
+    toastTimer = setTimeout(() => {
+      $("toast").textContent = "";
+    }, 2500);
+  }
+
+  function interact(type) {
+    if (type === "feed") {
+      if (state.hunger >= 100) {
+        state.speech = "喵～我已經吃飽了，謝謝你！";
+        state.mood = "😸";
+        notify("小貓已經吃飽囉！");
+        render();
+        save();
+        return;
+      }
+      state.hunger = clamp(state.hunger + 25);
+      state.happy = clamp(state.happy + 4);
+      state.energy = clamp(state.energy + 5);
+      state.speech = "好好吃！肚子暖暖的，好幸福～";
+      state.mood = "😋";
+      addDiary("🍓 餵小貓吃點心");
+    }
+
+    if (type === "pet") {
+      state.happy = clamp(state.happy + 15);
+      state.bond += 1;
+      state.speech = "呼嚕呼嚕～最喜歡你摸摸我的頭了！";
+      state.mood = "🥰";
+      addDiary("💗 溫柔地摸摸小貓的頭");
+    }
+
+    if (type === "play") {
+      if (state.energy < 15) {
+        state.speech = "喵嗚……我有點累了，讓我休息一下吧。";
+        state.mood = "🥱";
+        notify("活力不足！先餵食或休息一下吧。");
+        render();
+        save();
+        return;
+      }
+      state.energy = clamp(state.energy - 15);
+      state.happy = clamp(state.happy + 20);
+      state.hunger = clamp(state.hunger - 5);
+      state.bond += 1;
+      state.speech = "抓到了！再玩一次嘛～好開心！";
+      state.mood = "😻";
+      addDiary("🧶 和小貓玩了一場遊戲");
+
+      $("pet").classList.remove("playing");
+      void $("pet").offsetWidth;
+      $("pet").classList.add("playing");
+    }
+
+    state.count += 1;
+    render();
+    save();
+  }
+
+  function addDiary(entry) {
+    state.diary.unshift(entry);
+    state.diary = state.diary.slice(0, 8);
+  }
+
+  $("feedBtn").addEventListener("click", () => interact("feed"));
+  $("petBtn").addEventListener("click", () => interact("pet"));
+  $("playBtn").addEventListener("click", () => interact("play"));
+
+  $("nameForm").addEventListener("submit", event => {
+    event.preventDefault();
+    const value = $("nameInput").value.trim();
+    if (!value) {
+      notify("請先輸入寵物的名字喔！");
+      return;
+    }
+    state.name = value.slice(0, 12);
+    state.speech = `喵～以後我就是${state.name}囉！`;
+    state.mood = "😽";
+    addDiary(`✨ 替小貓取名為「${state.name}」`);
+    state.count += 1;
+    $("nameInput").value = "";
+    render();
+    save();
+    notify("名字更新成功！");
+  });
+
+  $("resetBtn").addEventListener("click", () => {
+    if (!confirm("確定要重新開始嗎？目前的養成進度將會清除。")) return;
+    state = { ...initial, diary: [...initial.diary] };
+    save();
+    render();
+    notify("新的旅程開始囉！");
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
